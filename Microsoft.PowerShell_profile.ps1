@@ -13,10 +13,19 @@ Register-EngineEvent PowerShell.OnIdle -Action {
 
 oh-my-posh init pwsh --config "$HOME\Documents\oh-my-posh\cobalt2.omp.json" | Invoke-Expression
 
-function gcr() {
-    $branch = git branch --all | ForEach-Object { $_.Trim().Replace('* ', '') } | fzf
+function gcr {
+    git fetch --all --prune | Out-Null
+
+    $branch = git for-each-ref --format="%(refname:short)" refs/heads refs/remotes/origin | fzf
+
     if ($branch) {
-        git switch $branch
+        if ($branch -like "origin/*") {
+            $localBranch = $branch -replace "origin/", ""
+            git switch -c $localBranch --track $branch 2>$null
+        }
+        else {
+            git switch $branch
+        }
     }
 }
 
