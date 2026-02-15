@@ -35,3 +35,22 @@ function gcl() {
         git switch $branch
     }
 }
+
+function dnb {
+    $projects = @(Get-ChildItem -Filter *.csproj)
+
+    if (-not $projects) {
+        Write-Host "No .csproj file found"
+        return
+    }
+
+    $project =
+        if ($projects.Count -eq 1) {
+            $projects[0].FullName
+        }
+        else {
+            $projects.FullName | fzf
+        }
+
+    dotnet build $project --consoleloggerparameters:ForceConsoleColor 2>&1 | Select-String -notmatch 'warning'
+}
