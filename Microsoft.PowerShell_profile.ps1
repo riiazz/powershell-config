@@ -54,3 +54,25 @@ function dnb {
 
     dotnet build $project --consoleloggerparameters:ForceConsoleColor 2>&1 | Select-String -notmatch 'warning'
 }
+
+function gmb {
+    $branch = git branch | ForEach-Object { $_.Trim().Replace('* ', '') } | fzf
+    if ($branch) {
+        git merge $branch
+    }
+}
+
+function gdb {
+    param(
+        [switch]$f
+    )
+
+    $branch = git branch | ForEach-Object { $_.Trim().Replace('* ', '') } | fzf
+    if ($branch) {
+        if ($f) {
+           git branch -D $branch
+        } else {
+           git branch -d $branch
+        }
+    }
+}
