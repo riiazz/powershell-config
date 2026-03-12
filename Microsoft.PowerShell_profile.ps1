@@ -76,3 +76,51 @@ function gdb {
         }
     }
 }
+
+function gfb {
+    $branch = git branch --show-current
+
+    if (-not $branch) {
+        Write-Host "Not on a branch."
+        return
+    }
+
+    git fetch origin $branch
+}
+
+function gpb {
+    $branch = git branch --show-current
+
+    if (-not $branch) {
+        Write-Host "Not on a branch."
+        return
+    }
+
+    git pull --rebase origin $branch
+}
+
+function git-check-commits {
+
+    $exist = @()
+    $notExist = @()
+
+    foreach ($c in $args) {
+
+        git merge-base --is-ancestor $c HEAD *> $null
+
+        if ($LASTEXITCODE -eq 0) {
+            $exist += $c
+        }
+        else {
+            $notExist += $c
+        }
+    }
+
+    echo "================="
+    echo "exist in current branch:"
+    $exist
+    echo "================="
+    echo "not exist:"
+    $notExist
+    echo "================="
+}
