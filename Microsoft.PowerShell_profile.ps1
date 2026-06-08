@@ -124,3 +124,28 @@ function git-check-commits {
     $notExist
     echo "================="
 }
+
+function glg {
+    git log --graph --decorate --date=format:'%Y-%m-%d' --pretty=format:"%C(yellow)%h%Creset %C(cyan)%an%Creset %s %C(green)%ad%Creset%C(auto)%d%Creset"
+}
+
+function glo {
+    git log --oneline
+}
+
+function gshow() {
+    $selected = git log `
+        --date=format:'%Y-%m-%d' `
+        --pretty=format:'%H|%h|%an|%ad|%s' |
+        fzf `
+            --no-sort `
+            --delimiter='|' `
+            --with-nth=2,3,4,5 `
+            --preview "git show --stat --color=always {1}" `
+            --preview-window=right:60%
+
+    if ($selected) {
+        $hash = ($selected -split '\|')[0]
+        git show -m --color=always $hash
+    }
+}
