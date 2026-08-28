@@ -149,3 +149,57 @@ function gshow() {
         git show -m --color=always $hash
     }
 }
+
+function touch {
+    Param([string]$Path)
+    if (Test-Path $Path) {
+        (Get-Item $Path).LastWriteTime = Get-Date
+    } else {
+        New-Item -ItemType File -Path $Path
+    }
+}
+
+function gdf {
+    $files = @(
+        git status --short |
+            ForEach-Object {
+                $_.Substring(3)
+            } |
+            Sort-Object -Unique
+    )
+
+    if (-not $files) {
+        Write-Host "No modified or untracked files."
+        return
+    }
+
+    # Use git diff for tracked files.
+    # For untracked files, show their contents.
+    #
+    # We use PowerShell's $input to receive the filename from fzf.
+    $previewCommand = 'git diff --color=always HEAD -- "{}"'
+
+    $selected = $files | fzf `
+        --ansi `
+        "--preview=$previewCommand" `
+        '--preview-window=right:60%' `
+        '--bind=ctrl-d:preview-half-page-down' `
+        '--bind=ctrl-u:preview-half-page-up'
+
+    if (-not $selected) {
+        return
+    }
+
+    # Clear-Host
+
+    $tracked = git ls-files --error-unmatch -- $selected 2>$null
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Untracked: $selected" -ForegroundColor Yellow
+        Write-Host ""
+        Get-Content -LiteralPath $selected
+    }
+    else {
+        git -c color.ui=always diff HEAD -- $selected
+    }
+}
